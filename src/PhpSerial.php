@@ -575,57 +575,31 @@ class PhpSerial
      *                   if less characters are in the buffer)
      * @return string
      */
-    public function readPort($count = 0)
+    public function readPort()
     {
         if ($this->_dState !== SERIAL_DEVICE_OPENED) {
             trigger_error("Device must be opened to read it", E_USER_WARNING);
-
             return false;
         }
 
-        if ($this->_os === "linux" || $this->_os === "osx") {
-            // Behavior in OSX isn't to wait for new data to recover, but just
-            // grabs what's there!
-            // Doesn't always work perfectly for me in OSX
-            $content = ""; $i = 0;
-
-            if ($count !== 0) {
-                do {
-                    if ($i > $count) {
-                        $content .= fread($this->_dHandle, ($count - $i));
-                    } else {
-                        $content .= fread($this->_dHandle, 128);
-                    }
-                } while (($i += 128) === strlen($content));
+        $content = "";
+        $content = fread($this->_dHandle, 128);
+        while (strlen($content) == 0) {
+            $content = fread($this->_dHandle, 128);
+        }
+        $i = 0;
+        while ($i < 1000) {
+            $temp = fread($this->_dHandle, 128);
+            if (strlen($temp) != 0) {
+                $content .= $temp;
+                $i = 0;
             } else {
-                do {
-                    $content .= fread($this->_dHandle, 128);
-                } while (($i += 128) === strlen($content));
+                $i++;
+                usleep(100);
             }
-
-            return $content;
-        } elseif ($this->_os === "windows") {
-            // Windows port reading procedures still buggy
-            $content = ""; $i = 0;
-
-            if ($count !== 0) {
-                do {
-                    if ($i > $count) {
-                        $content .= fread($this->_dHandle, ($count - $i));
-                    } else {
-                        $content .= fread($this->_dHandle, 128);
-                    }
-                } while (($i += 128) === strlen($content));
-            } else {
-                do {
-                    $content .= fread($this->_dHandle, 128);
-                } while (($i += 128) === strlen($content));
-            }
-
-            return $content;
         }
 
-        return false;
+        return $content;
     }
 
     /**
