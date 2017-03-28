@@ -33,12 +33,8 @@ class PhpSerial
      */
     public $autoFlush = true;
 
-    /**
-     * Constructor. Perform some checks about the OS and setserial
-     *
-     * @return PhpSerial
-     */
-    public function PhpSerial()
+    
+    public function __construct() 
     {
         setlocale(LC_ALL, "en_US");
 
@@ -66,6 +62,15 @@ class PhpSerial
                           "to run.", E_USER_ERROR);
             exit();
         }
+    }
+    /**
+     * Constructor. Perform some checks about the OS and setserial
+     *
+     * @return PhpSerial
+     */
+    public function PhpSerial()
+    {
+        self::__construct();
     }
 
     //
